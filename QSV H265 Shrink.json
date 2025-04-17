@@ -1,0 +1,124 @@
+{
+  "flowName": "QSV H265 Shrink to 2500kbps",
+  "flowDescription": "Uses QSV for hardware-accelerated H.265 encoding to shrink video files to a target bitrate of 2500 kbps.",
+  "steps": [
+    {
+      "stepId": "hwCheck",
+      "stepName": "Hardware Check - QSV Available",
+      "pluginId": "Tdarr_Plugin_MC93_HW_Checker",
+      "pluginName": "Tdarr Hardware Checker",
+      "order": 1,
+      "conditions": {
+        "and": []
+      },
+      "inputs": {
+        "expectHardwareAcceleration": true,
+        "expectedCodec": "h265_qsv",
+        "failNode": true,
+        "failNodeMessage": "Node does not support QSV H.265 encoding."
+      }
+    },
+    {
+      "stepId": "transcodeQSV",
+      "stepName": "Transcode to H.265 (QSV)",
+      "pluginId": "Tdarr_Plugin_a9ay_FFmpeg_CPU_QSV",
+      "pluginName": "FFmpeg CPU/QSV Transcode",
+      "order": 2,
+      "conditions": {
+        "and": [
+          {
+            "stepId": "hwCheck",
+            "result": "success"
+          }
+        ]
+      },
+      "inputs": {
+        "operationMode": "transcode",
+        "targetCodec": "hevc",
+        "targetVideoEncoder": "hevc_qsv",
+        "targetAudioCodec": "copy",
+        "targetSubtitleCodec": "copy",
+        "videoBitrate": "2500k",
+        "audioBitrate": "",
+        "audioChannels": "",
+        "sampleRate": "",
+        "width": "",
+        "height": "",
+        "aspectRatio": "",
+        "fps": "",
+        "deinterlace": "none",
+        "videoQuality": "",
+        "crf": "",
+        "preset": "veryfast",
+        "tune": "",
+        "profile": "",
+        "level": "",
+        "tier": "",
+        "hdrMode": "copy",
+        "hdrConvertFormat": "",
+        "removeMetadata": false,
+        "normalizeAudio": false,
+        "audioBoost": "",
+        "sharpen": "",
+        "denoise": "",
+        "resolution": "",
+        "upscale": false,
+        "upscaleAlgorithm": "lanczos",
+        "addSubtitleTrack": false,
+        "subtitleTrackSource": "first",
+        "burnInSubtitles": "none",
+        "audioStreamIndex": "",
+        "subtitleStreamIndex": "",
+        "videoStreamIndex": "",
+        "segmentLength": "",
+        "segmentFormat": "",
+        "forceKeyframes": "",
+        "advancedFFmpegOptions": ""
+      }
+    },
+    {
+      "stepId": "failCheck",
+      "stepName": "Fail Check - Transcode Successful",
+      "pluginId": "Tdarr_Plugin_MC93_File_Checker",
+      "pluginName": "Tdarr File Checker",
+      "order": 3,
+      "conditions": {
+        "and": [
+          {
+            "stepId": "transcodeQSV",
+            "result": "success"
+          }
+        ]
+      },
+      "inputs": {
+        "expectedVideoCodec": "hevc",
+        "expectedAudioCodec": "original",
+        "expectedSubtitleCodec": "original",
+        "expectedFileSizeTolerance": "10",
+        "expectedVideoBitrateTolerance": "10",
+        "expectedAudioBitrateTolerance": "10",
+        "expectedVideoResolutionTolerance": "5",
+        "expectedAudioSampleRateTolerance": "5",
+        "expectedVideoFpsTolerance": "1",
+        "failNode": false,
+        "failNodeMessage": "Transcoded file does not meet expected criteria."
+      }
+    },
+    {
+      "stepId": "deleteOriginal",
+      "stepName": "Delete Original File",
+      "pluginId": "Tdarr_Plugin_00td_Delete_Original",
+      "pluginName": "Tdarr Delete Original File",
+      "order": 4,
+      "conditions": {
+        "and": [
+          {
+            "stepId": "failCheck",
+            "result": "success"
+          }
+        ]
+      },
+      "inputs": {}
+    }
+  ]
+}
